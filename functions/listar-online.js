@@ -1,51 +1,46 @@
 const admin = require('firebase-admin');
 
-const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY;
-if (!privateKeyRaw) {
-  throw new Error('FIREBASE_PRIVATE_KEY não está definida no ambiente');
+if (
+  !process.env.FIREBASE_PRIVATE_KEY ||
+  !process.env.FIREBASE_CLIENT_EMAIL ||
+  !process.env.FIREBASE_PROJECT_ID
+) {
+  throw new Error('As variáveis de ambiente do Firebase não estão definidas!');
 }
-const privateKey = privateKeyRaw.replace(/\\n/g, '\n');
 
-const serviceAccount = {
-  type: process.env.FIREBASE_TYPE,
-  project_id: process.env.FIREBASE_PROJECT_ID,
-  private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-  private_key: privateKey,
-  client_email: process.env.FIREBASE_CLIENT_EMAIL,
-  client_id: process.env.FIREBASE_CLIENT_ID,
-  auth_uri: process.env.FIREBASE_AUTH_URI,
-  token_uri: process.env.FIREBASE_TOKEN_URI,
-  auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT_URL,
-  client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL,
-};
+const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
 
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: privateKey,
+    }),
   });
 }
 
+const db = admin.firestore();
+
 exports.handler = async function(event, context) {
-  const now = Date.now();
-  const twoMinutesAgo = now - 2 * 60 * 1000;
-
-  const db = admin.firestore();
-
   try {
-    const snapshot = await db.collection('acessos')
-      .where('timestamp', '>=', twoMinutesAgo)
+    const agora = Date.now();
+    const doisMinutosAtras = agora - 2 * 60 * 1000;
+
+    const snapshot = await db
+      .collection('acessos') // seu nome da coleção, ajuste se for diferente
+      .where('timestamp', '>=', doisMinutosAtras)
       .get();
 
-    const acessosRecentes = [];
-    snapshot.forEach(doc => {
-      acessosRecentes.push({ id: doc.id, ...doc.data() });
-    });
+    const usuariosOnline = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
     return {
       statusCode: 200,
-      body: JSON.stringify(acessosRecentes),
+      body: JSON.stringify(usuariosOnline),
     };
-
   } catch (error) {
     return {
       statusCode: 500,
