@@ -1,0 +1,11 @@
+{
+  "name": "meu-site",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'No build step needed'"
+  },
+  "dependencies": {
+    "firebase-admin": "^11.0.0"
+  }
+}
