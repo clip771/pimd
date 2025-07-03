@@ -1,9 +1,20 @@
 const admin = require("firebase-admin");
 
-if (!admin.apps.length) {
-  // Pega a credencial da variável de ambiente e faz o parse do JSON
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+// Pega o JSON da serviceAccount da variável ambiente (string JSON)
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
 
+if (!serviceAccountJson) {
+  throw new Error("FIREBASE_SERVICE_ACCOUNT environment variable is missing");
+}
+
+let serviceAccount;
+try {
+  serviceAccount = JSON.parse(serviceAccountJson);
+} catch (e) {
+  throw new Error("Invalid JSON in FIREBASE_SERVICE_ACCOUNT environment variable");
+}
+
+if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
@@ -12,10 +23,10 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 exports.handler = async () => {
-  try {
-    const agora = Date.now();
-    const limite = agora - 2 * 60 * 1000; // Últimos 2 minutos
+  const agora = Date.now();
+  const limite = agora - 2 * 60 * 1000; // últimos 2 minutos
 
+  try {
     const snapshot = await db.collection("acessos")
       .where("timestamp", ">=", limite)
       .get();
@@ -30,19 +41,12 @@ exports.handler = async () => {
       body: JSON.stringify({
         total: online.length,
         acessos: online
-      }),
-      headers: {
-        "Content-Type": "application/json"
-      }
+      })
     };
   } catch (error) {
-    console.error("Erro ao listar online:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Erro interno" }),
-      headers: {
-        "Content-Type": "application/json"
-      }
+      body: JSON.stringify({ error: error.message })
     };
   }
 };
