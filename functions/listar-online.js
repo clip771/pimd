@@ -1,5 +1,9 @@
 const admin = require('firebase-admin');
 
+console.log('FIREBASE_PRIVATE_KEY:', process.env.FIREBASE_PRIVATE_KEY ? 'definida' : 'não definida');
+console.log('FIREBASE_CLIENT_EMAIL:', process.env.FIREBASE_CLIENT_EMAIL ? 'definida' : 'não definida');
+console.log('FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID ? 'definida' : 'não definida');
+
 if (!process.env.FIREBASE_PRIVATE_KEY ||
     !process.env.FIREBASE_CLIENT_EMAIL ||
     !process.env.FIREBASE_PROJECT_ID) {
@@ -17,29 +21,11 @@ admin.initializeApp({
   databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`,
 });
 
-const db = admin.firestore();
+// Sua função handler continua aqui...
 
 exports.handler = async function(event, context) {
-  try {
-    // Exemplo: buscar documentos online nos últimos 2 minutos
-    const doisMinutosAtras = Date.now() - 2 * 60 * 1000;
-    const querySnapshot = await db.collection('acessos')
-      .where('timestamp', '>=', new Date(doisMinutosAtras))
-      .get();
-
-    const listaOnline = [];
-    querySnapshot.forEach(doc => {
-      listaOnline.push({ id: doc.id, ...doc.data() });
-    });
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify(listaOnline),
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: 'Erro ao listar online: ' + error.message,
-    };
-  }
+  return {
+    statusCode: 200,
+    body: 'Funcionou!',
+  };
 };
