@@ -1,7 +1,13 @@
 const admin = require('firebase-admin');
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+let serviceAccount;
+try {
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+} catch (e) {
+  console.error("Erro ao parsear FIREBASE_SERVICE_ACCOUNT", e);
+  throw e;
+}
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -11,28 +17,31 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-exports.handler = async () => {
+exports.handler = async function(event, context) {
   try {
     const agora = Date.now();
-    const limite = agora - 2 * 60 * 1000; // últimos 2 minutos
+    const doisMinutosAtras = agora - 2 * 60 * 1000;
 
-    const snapshot = await db.collection("acessos")
-      .where("timestamp", ">=", limite)
+    // Supondo que a coleção seja "acessos" e o timestamp esteja no campo "timestamp" em milissegundos
+    const snapshot = await db.collection('acessos')
+      .where('timestamp', '>=', doisMinutosAtras)
       .get();
 
-    const online = [];
+    const acessosRecentes = [];
     snapshot.forEach(doc => {
-      online.push(doc.data());
+      acessosRecentes.push({ id: doc.id, ...doc.data() });
     });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        total: online.length,
-        acessos: online
-      })
+      body: JSON.stringify(acessosRecentes),
+      headers: {
+        'Content-Type': 'application/json'
+      }
     };
+
   } catch (error) {
+    console.error("Erro listar-online:", error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message })
