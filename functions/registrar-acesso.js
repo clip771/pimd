@@ -1,7 +1,8 @@
 const admin = require("firebase-admin");
-const serviceAccount = require("firebase-admin");
 
 if (!admin.apps.length) {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
@@ -10,20 +11,31 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 exports.handler = async (event) => {
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Método não permitido" };
+  try {
+    const body = JSON.parse(event.body);
+    const agora = Date.now();
+
+    // Exemplo: salvando IP e timestamp (ajuste conforme seu esquema)
+    await db.collection("acessos").add({
+      ip: body.ip || "desconhecido",
+      timestamp: agora
+    });
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: "Acesso registrado" }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    };
+  } catch (error) {
+    console.error("Erro ao registrar acesso:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Erro interno" }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    };
   }
-
-  const data = JSON.parse(event.body);
-
-  const doc = {
-    timestamp: Date.now(),
-    pagina: data.pagina || "desconhecida",
-    ip: event.headers["x-forwarded-for"] || "desconhecido",
-    userAgent: event.headers["user-agent"] || "desconhecido"
-  };
-
-  await db.collection("acessos").add(doc);
-
-  return { statusCode: 200, body: "OK" };
 };
