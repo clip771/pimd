@@ -1,50 +1,35 @@
-const admin = require('firebase-admin');
-
-if (
-  !process.env.FIREBASE_PRIVATE_KEY ||
-  !process.env.FIREBASE_CLIENT_EMAIL ||
-  !process.env.FIREBASE_PROJECT_ID
-) {
-  throw new Error('As variáveis de ambiente do Firebase não estão definidas!');
-}
-
-const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: privateKey,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
     }),
   });
 }
 
-const db = admin.firestore();
-
-exports.handler = async function(event, context) {
+exports.handler = async (event, context) => {
   try {
-    const agora = Date.now();
-    const doisMinutosAtras = agora - 2 * 60 * 1000;
+    const db = admin.firestore();
+    const snapshot = await db.collection("online").get();
 
-    const snapshot = await db
-      .collection('acessos') // seu nome da coleção, ajuste se for diferente
-      .where('timestamp', '>=', doisMinutosAtras)
-      .get();
-
-    const usuariosOnline = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const data = [];
+    snapshot.forEach((doc) => {
+      data.push({ id: doc.id, ...doc.data() });
+    });
 
     return {
       statusCode: 200,
-      body: JSON.stringify(usuariosOnline),
+      body: JSON.stringify(data),
     };
   } catch (error) {
+    console.error("Erro ao listar online:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({ error: "Erro ao listar online." }),
     };
   }
 };

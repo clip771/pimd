@@ -1,59 +1,39 @@
-const admin = require('firebase-admin');
-
-let serviceAccount;
-try {
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-} catch (e) {
-  console.error("Erro ao parsear FIREBASE_SERVICE_ACCOUNT", e);
-  throw e;
-}
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    }),
   });
 }
 
-const db = admin.firestore();
+exports.handler = async (event, context) => {
+  if (event.httpMethod !== "POST") {
+    return { statusCode: 405, body: "Method Not Allowed" };
+  }
 
-exports.handler = async function(event, context) {
   try {
-    if (event.httpMethod !== 'POST') {
-      return {
-        statusCode: 405,
-        body: JSON.stringify({ error: "Método não permitido" }),
-      };
-    }
-
     const body = JSON.parse(event.body);
-    // Exemplo: espera um campo "usuarioId" no corpo da requisição
-    const { usuarioId } = body;
+    const db = admin.firestore();
 
-    if (!usuarioId) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Campo 'usuarioId' é obrigatório" }),
-      };
-    }
-
-    const timestamp = Date.now();
-
-    const docRef = await db.collection('acessos').add({
-      usuarioId,
-      timestamp
+    await db.collection("online").add({
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      ...body,
     });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ id: docRef.id, usuarioId, timestamp }),
+      body: JSON.stringify({ message: "Acesso registrado com sucesso." }),
     };
-
   } catch (error) {
-    console.error("Erro registrar-acesso:", error);
+    console.error("Erro ao registrar acesso:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({ error: "Erro ao registrar acesso." }),
     };
   }
 };
