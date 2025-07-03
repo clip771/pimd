@@ -1,45 +1,50 @@
 const admin = require('firebase-admin');
 
-if (!process.env.FIREBASE_PRIVATE_KEY ||
+if (!admin.apps.length) {
+  if (
+    !process.env.FIREBASE_PRIVATE_KEY ||
     !process.env.FIREBASE_CLIENT_EMAIL ||
-    !process.env.FIREBASE_PROJECT_ID) {
-  throw new Error('As variáveis de ambiente do Firebase não estão definidas!');
+    !process.env.FIREBASE_PROJECT_ID
+  ) {
+    throw new Error('As variáveis de ambiente do Firebase não estão definidas!');
+  }
+
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      projectId: process.env.FIREBASE_PROJECT_ID,
+    }),
+    databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`,
+  });
 }
 
-const serviceAccount = {
-  private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-  client_email: process.env.FIREBASE_CLIENT_EMAIL,
-  project_id: process.env.FIREBASE_PROJECT_ID,
-};
+const db = admin.database();
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`,
-});
-
-const db = admin.firestore();
-
-exports.handler = async function(event, context) {
+exports.handler = async function (event, context) {
   try {
-    const { userId } = JSON.parse(event.body);
+    // Pega o IP do visitante (Netlify geralmente passa em event.headers)
+    const ip =
+      event.headers['x-nf-client-connection-ip'] ||
+      event.headers['x-forwarded-for'] ||
+      'IP não detectado';
 
-    if (!userId) {
-      return { statusCode: 400, body: 'userId é obrigatório' };
-    }
+    const timestamp = Date.now();
 
-    await db.collection('acessos').doc(userId).set({
-      timestamp: new Date(),
-      online: true,
+    // Você pode criar um nó 'acessos' com IDs automáticos pelo push()
+    await db.ref('acessos').push({
+      ip,
+      timestamp,
     });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Acesso registrado' }),
+      body: JSON.stringify({ success: true, message: 'Acesso registrado!' }),
     };
   } catch (error) {
     return {
       statusCode: 500,
-      body: 'Erro ao registrar acesso: ' + error.message,
+      body: JSON.stringify({ success: false, error: error.message }),
     };
   }
 };
