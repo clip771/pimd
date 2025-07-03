@@ -22,15 +22,14 @@ if (!admin.apps.length) {
 const db = admin.database();
 
 exports.handler = async function (event, context) {
-  // Impede a função de ficar pendurada
   context.callbackWaitsForEmptyEventLoop = false;
 
   try {
-    // BUSCA LIMITADA a só os últimos 50 acessos
-    const snapshot = await db.ref("onlineUsers").limitToLast(50).once("value");
+    // Busca tudo que tem em onlineUsers
+    const snapshot = await db.ref("onlineUsers").once("value");
     const data = snapshot.val() || {};
 
-    // Transformar em array de forma legível
+    // Transforma em array, se quiser
     const acessos = Object.entries(data).map(([key, value]) => ({
       id: key,
       ...value,
@@ -47,7 +46,10 @@ exports.handler = async function (event, context) {
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ success: false, error: error.message }),
+      body: JSON.stringify({
+        success: false,
+        error: error.message,
+      }),
     };
   }
 };

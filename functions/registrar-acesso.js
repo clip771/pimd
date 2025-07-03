@@ -22,29 +22,22 @@ if (!admin.apps.length) {
 const db = admin.database();
 
 exports.handler = async function (event, context) {
-  // Impede a função de ficar pendurada
   context.callbackWaitsForEmptyEventLoop = false;
 
-  try {
-    const timestamp = Date.now();
-    const ip = event.headers["x-forwarded-for"] || event.headers["client-ip"] || "desconhecido";
-    const userAgent = event.headers["user-agent"] || "desconhecido";
+  const timestamp = Date.now();
+  const ip = event.headers["x-forwarded-for"] || event.headers["client-ip"] || "desconhecido";
+  const userAgent = event.headers["user-agent"] || "desconhecido";
 
-    // Salva no nó 'onlineUsers' com um ID único (push gera id automático)
-    await db.ref("onlineUsers").push({
-      timestamp,
-      ip,
-      userAgent,
-    });
+  // *NAO* usar await aqui
+  db.ref("onlineUsers").push({
+    timestamp,
+    ip,
+    userAgent,
+  });
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true, message: "Acesso registrado com sucesso." }),
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ success: false, error: error.message }),
-    };
-  }
+  // Responde imediatamente sem esperar o push
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ success: true, message: "Acesso registrado." }),
+  };
 };
