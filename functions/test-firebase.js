@@ -11,16 +11,9 @@ if (!admin.apps.length) {
   });
 }
 
-exports.handler = async function (event, context) {
-  try {
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true, message: "Conexão Firebase OK" }),
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ success: false, error: error.message }),
-    };
-  }
+exports.handler = async function(event, context) {
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ success: true, message: "Conexão Firebase OK" }),
+  };
 };
