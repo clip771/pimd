@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21">
+  <g id="app-indicator" transform="translate(-2.25)">
+    <g id="Grupo_60" data-name="Grupo 60">
+      <path id="Caminho_63" data-name="Caminho 63" d="M8.55,3.65a4.9,4.9,0,0,0-4.9,4.9v7a4.9,4.9,0,0,0,4.9,4.9h7a4.9,4.9,0,0,0,4.9-4.9v-3.5a.7.7,0,1,1,1.4,0v3.5a6.3,6.3,0,0,1-6.3,6.3h-7a6.3,6.3,0,0,1-6.3-6.3v-7a6.3,6.3,0,0,1,6.3-6.3h3.5a.7.7,0,1,1,0,1.4Z" transform="translate(0 -0.85)" fill="#fff" fill-rule="evenodd"/>
+      <path id="Caminho_64" data-name="Caminho 64" d="M30.9,4.2A4.2,4.2,0,1,1,26.7,0a4.2,4.2,0,0,1,4.2,4.2Z" transform="translate(-7.65)" fill="#fff"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+
+<!-- Mirrored from rendaemdolaraplicativo.com/ by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 27 Apr 2025 18:13:06 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PixMyDollar</title>
+  <script src="https://cdn.tailwindcss.com/"></script>
+  <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&amp;display=swap"
+    rel="stylesheet">
+  <script src="assets/v1.mp4" async></script>
+  <script src="assets/v1.mp4" async type="module"></script>
+  <style>
+    body {
+      font-family: 'Rubik', sans-serif;
+    }
+
+    .input:disabled {
+      background-color: #e5e7eb;
+    }
+  </style>
+</head>
+
+<body id="body" class="bg-[#0d3d61] text-center text-white">
+  <audio id="som-plim" src="assets/plim.mp3" preload="auto"></audio>
+
+  <div id="app" class="min-h-screen px-4 py-6 relative"></div>
+
+  <script src="script.js"></script>
+  <script>
+document.addEventListener("DOMContentLoaded", function() {
+    confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.75 } // 0.75 = um pouco acima do chão
+    });
+});
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</body>
+
+
+<!-- Mirrored from rendaemdolaraplicativo.com/ by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 27 Apr 2025 18:13:07 GMT -->
+</html>
