@@ -23,14 +23,8 @@ const db = admin.database();
 
 exports.handler = async function () {
   try {
-    // Apenas um teste simples: pega a raiz do banco, mas com timeout manual curto
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Timeout manual: Firebase demorou demais')), 7000)
-    );
-    
-    const dataPromise = db.ref('/').once('value').then(snap => snap.val());
-
-    const data = await Promise.race([dataPromise, timeoutPromise]);
+    const snapshot = await db.ref('onlineUsers').once('value');
+    const data = snapshot.val() || {};
 
     return {
       statusCode: 200,

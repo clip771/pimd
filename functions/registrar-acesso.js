@@ -21,30 +21,20 @@ if (!admin.apps.length) {
 
 const db = admin.database();
 
-function promiseTimeout(ms, promise) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("Timeout")), ms);
-    promise
-      .then(value => {
-        clearTimeout(timer);
-        resolve(value);
-      })
-      .catch(err => {
-        clearTimeout(timer);
-        reject(err);
-      });
-  });
-}
-
-exports.handler = async function (event, context) {
+exports.handler = async function (event) {
   try {
-    const timestamp = Date.now();
-    const ip = event.headers['client-ip'] || event.headers['x-forwarded-for'] || 'desconhecido';
+    const body = JSON.parse(event.body || '{}');
+    if (!body.userId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ success: false, error: 'Faltando userId' }),
+      };
+    }
 
-    await promiseTimeout(8000, db.ref(`onlineUsers/${timestamp}`).set({
-      ip,
-      timestamp,
-    }));
+    // Salva timestamp do acesso com userId como chave
+    await db.ref(`onlineUsers/${body.userId}`).set({
+      lastAccess: Date.now(),
+    });
 
     return {
       statusCode: 200,
