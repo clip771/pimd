@@ -1,14 +1,19 @@
 const admin = require('firebase-admin');
 
 let serviceAccount;
+
 try {
+  // Parse o JSON da variável ambiente
   serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+
+  // Substitui os caracteres literais "\n" por quebras de linha reais
   serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-} catch (e) {
-  console.error("Erro ao parsear FIREBASE_SERVICE_ACCOUNT", e);
-  throw e;
+} catch (err) {
+  console.error('Erro ao carregar a chave do serviço:', err);
+  throw err;
 }
 
+// Inicializa o app Firebase apenas se ainda não estiver inicializado
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
@@ -19,32 +24,23 @@ const db = admin.firestore();
 
 exports.handler = async function(event, context) {
   try {
-    const agora = Date.now();
-    const doisMinutosAtras = agora - 2 * 60 * 1000;
+    // Exemplo: listar documentos da coleção "acessos"
+    const snapshot = await db.collection('acessos').get();
 
-    // Supondo que a coleção seja "acessos" e o timestamp esteja no campo "timestamp" em milissegundos
-    const snapshot = await db.collection('acessos')
-      .where('timestamp', '>=', doisMinutosAtras)
-      .get();
-
-    const acessosRecentes = [];
-    snapshot.forEach(doc => {
-      acessosRecentes.push({ id: doc.id, ...doc.data() });
-    });
+    const dados = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
 
     return {
       statusCode: 200,
-      body: JSON.stringify(acessosRecentes),
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      body: JSON.stringify(dados)
     };
-
   } catch (error) {
-    console.error("Erro listar-online:", error);
+    console.error('Erro ao acessar o Firestore:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({ error: 'Erro no servidor' })
     };
   }
 };
