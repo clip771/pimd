@@ -1,4 +1,4 @@
-export const handler = async () => {
+exports.handler = async (event, context) => {
   const jsonString = process.env.FIREBASE_SERVICE_ACCOUNT;
 
   console.log("========== RAW STRING ==========");
