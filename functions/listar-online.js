@@ -21,25 +21,16 @@ if (!admin.apps.length) {
 
 const db = admin.database();
 
-function promiseTimeout(ms, promise) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("Timeout")), ms);
-    promise
-      .then(value => {
-        clearTimeout(timer);
-        resolve(value);
-      })
-      .catch(err => {
-        clearTimeout(timer);
-        reject(err);
-      });
-  });
-}
-
-exports.handler = async function (event, context) {
+exports.handler = async function () {
   try {
-    const snapshot = await promiseTimeout(8000, db.ref('onlineUsers').once('value')); // 8 segundos de timeout
-    const data = snapshot.val();
+    // Apenas um teste simples: pega a raiz do banco, mas com timeout manual curto
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout manual: Firebase demorou demais')), 7000)
+    );
+    
+    const dataPromise = db.ref('/').once('value').then(snap => snap.val());
+
+    const data = await Promise.race([dataPromise, timeoutPromise]);
 
     return {
       statusCode: 200,
