@@ -1,39 +1,34 @@
-const admin = require("firebase-admin");
+const admin = require('firebase-admin');
 
-let app;
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
 
 if (!admin.apps.length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-
-  // Corrige as quebras de linha
-  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
-
-  app = admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
   });
-} else {
-  app = admin.app();
 }
 
 const db = admin.firestore();
 
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
   try {
-    const ip = event.headers["x-forwarded-for"] || "IP_DESCONHECIDO";
+    // Recebe os dados enviados no corpo da requisição (JSON)
+    const data = JSON.parse(event.body);
 
-    await db.collection("acessos").add({
-      ip: ip,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    // Adiciona timestamp atual
+    data.timestamp = Date.now();
+
+    await db.collection("acessos").add(data);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: "Acesso registrado com sucesso." }),
+      body: JSON.stringify({ message: "Acesso registrado com sucesso." })
     };
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({ error: error.message })
     };
   }
 };

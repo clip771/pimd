@@ -1,44 +1,41 @@
-const admin = require("firebase-admin");
+const admin = require('firebase-admin');
 
-let app;
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
 
 if (!admin.apps.length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-
-  // Corrige as quebras de linha
-  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
-
-  app = admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
   });
-} else {
-  app = admin.app();
 }
 
 const db = admin.firestore();
 
-exports.handler = async (event, context) => {
+exports.handler = async () => {
   try {
-    const now = new Date();
-    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    const agora = Date.now();
+    const limite = agora - 2 * 60 * 1000; // últimos 2 minutos
 
     const snapshot = await db.collection("acessos")
-      .where("timestamp", ">=", fiveMinutesAgo)
+      .where("timestamp", ">=", limite)
       .get();
 
-    const acessos = [];
+    const online = [];
     snapshot.forEach(doc => {
-      acessos.push({ id: doc.id, ...doc.data() });
+      online.push(doc.data());
     });
 
     return {
       statusCode: 200,
-      body: JSON.stringify(acessos),
+      body: JSON.stringify({
+        total: online.length,
+        acessos: online
+      })
     };
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({ error: error.message })
     };
   }
 };
