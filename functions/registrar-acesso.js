@@ -1,4 +1,4 @@
-const admin = require("firebase-admin");
+const admin = require('firebase-admin');
 
 if (!admin.apps.length) {
   if (
@@ -6,12 +6,12 @@ if (!admin.apps.length) {
     !process.env.FIREBASE_CLIENT_EMAIL ||
     !process.env.FIREBASE_PROJECT_ID
   ) {
-    throw new Error("As variáveis de ambiente do Firebase não estão definidas!");
+    throw new Error('As variáveis de ambiente do Firebase não estão definidas!');
   }
 
   admin.initializeApp({
     credential: admin.credential.cert({
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       projectId: process.env.FIREBASE_PROJECT_ID,
     }),
@@ -21,23 +21,39 @@ if (!admin.apps.length) {
 
 const db = admin.database();
 
-exports.handler = async function (event, context) {
-  context.callbackWaitsForEmptyEventLoop = false;
-
-  const timestamp = Date.now();
-  const ip = event.headers["x-forwarded-for"] || event.headers["client-ip"] || "desconhecido";
-  const userAgent = event.headers["user-agent"] || "desconhecido";
-
-  // *NAO* usar await aqui
-  db.ref("onlineUsers").push({
-    timestamp,
-    ip,
-    userAgent,
+function promiseTimeout(ms, promise) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("Timeout")), ms);
+    promise
+      .then(value => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch(err => {
+        clearTimeout(timer);
+        reject(err);
+      });
   });
+}
 
-  // Responde imediatamente sem esperar o push
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ success: true, message: "Acesso registrado." }),
-  };
+exports.handler = async function (event, context) {
+  try {
+    const timestamp = Date.now();
+    const ip = event.headers['client-ip'] || event.headers['x-forwarded-for'] || 'desconhecido';
+
+    await promiseTimeout(8000, db.ref(`onlineUsers/${timestamp}`).set({
+      ip,
+      timestamp,
+    }));
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: true, message: 'Acesso registrado' }),
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ success: false, error: error.message }),
+    };
+  }
 };

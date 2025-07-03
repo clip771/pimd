@@ -21,20 +21,31 @@ if (!admin.apps.length) {
 
 const db = admin.database();
 
+function promiseTimeout(ms, promise) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("Timeout")), ms);
+    promise
+      .then(value => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch(err => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
 exports.handler = async function (event, context) {
   try {
-    console.log('Tentando acessar o banco...');
-    const snapshot = await db.ref('/').once('value'); // pega raiz do DB só pra testar
+    const snapshot = await promiseTimeout(8000, db.ref('onlineUsers').once('value')); // 8 segundos de timeout
     const data = snapshot.val();
-
-    console.log('Dados recebidos:', data);
 
     return {
       statusCode: 200,
       body: JSON.stringify({ success: true, data }),
     };
   } catch (error) {
-    console.error('Erro ao acessar o Firebase:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ success: false, error: error.message }),
