@@ -15,7 +15,7 @@ if (!admin.apps.length) {
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       projectId: process.env.FIREBASE_PROJECT_ID,
     }),
-    databaseURL: `https://contador-onlinepmd-default-rtdb.firebaseio.com`,
+    databaseURL: "https://contador-onlinepmd-default-rtdb.firebaseio.com",
   });
 }
 
@@ -23,7 +23,8 @@ const db = admin.database();
 
 exports.handler = async function (event, context) {
   try {
-    if (event.httpMethod !== 'POST') {
+    // Aceita GET e POST
+    if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
       return {
         statusCode: 405,
         body: JSON.stringify({ success: false, error: 'Método não permitido' }),
