@@ -2,46 +2,35 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Confirmar e Limpar Online</title>
+  <title>Confirmar Limpeza</title>
 </head>
 <body>
-  <h1>Apagar dados online</h1>
-  <p>Digite a palavra <strong>DELETE</strong> para confirmar:</p>
-  <input type="text" id="confirmInput" />
-  <button id="btnLimpar" disabled>Limpar Dados</button>
-
-  <p id="resultado"></p>
+  <h1>Confirmar Limpeza</h1>
+  <p>Digite <strong>DELETE</strong> para confirmar:</p>
+  <input type="text" id="confirmacao" placeholder="Digite DELETE" />
+  <button onclick="confirmarDelete()">Confirmar</button>
+  <pre id="resposta"></pre>
 
   <script>
-    const input = document.getElementById('confirmInput');
-    const btn = document.getElementById('btnLimpar');
-    const resultado = document.getElementById('resultado');
-
-    // Habilita botão só se o texto for DELETE
-    input.addEventListener('input', () => {
-      btn.disabled = input.value !== 'DELETE';
-      resultado.textContent = '';
-    });
-
-    btn.addEventListener('click', async () => {
-      resultado.textContent = 'Enviando requisição...';
+    async function confirmarDelete() {
+      const valor = document.getElementById('confirmacao').value;
+      const respostaElem = document.getElementById('resposta');
 
       try {
         const res = await fetch('/.netlify/functions/limpar-online', {
-          method: 'POST'
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ confirm: valor })
         });
 
-        const data = await res.json();
-
-        if (data.success) {
-          resultado.textContent = 'Dados apagados com sucesso!';
-        } else {
-          resultado.textContent = 'Erro: ' + (data.error || 'Desconhecido');
-        }
-      } catch (err) {
-        resultado.textContent = 'Erro na requisição: ' + err.message;
+        const resultado = await res.json();
+        respostaElem.textContent = JSON.stringify(resultado, null, 2);
+      } catch (erro) {
+        respostaElem.textContent = 'Erro: ' + erro.message;
       }
-    });
+    }
   </script>
 </body>
 </html>
