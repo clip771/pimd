@@ -13,24 +13,22 @@ if (!admin.apps.length) {
 
 const db = admin.database();
 
-exports.handler = async function (event, context) {
+exports.handler = async function(event, context) {
   try {
-    // Apenas grava e lê um valor de teste
-    const ref = db.ref("test");
-    await ref.set({ timestamp: Date.now() });
-    const snapshot = await ref.once("value");
+    const ref = db.ref('test');
+    await ref.set({ test: 'ok', timestamp: Date.now() });
+    const snapshot = await ref.once('value');
     const data = snapshot.val();
 
     return {
       statusCode: 200,
       body: JSON.stringify({
         success: true,
-        message: "Conexão Firebase OK",
-        data,
+        message: 'Conexão Firebase OK',
+        data
       }),
     };
   } catch (error) {
-    console.error("Erro ao testar Firebase:", error);
     return {
       statusCode: 500,
       body: JSON.stringify({ success: false, error: error.message }),
