@@ -1,5 +1,6 @@
-const admin = require('firebase-admin');
+const admin = require("firebase-admin");
 
+// Inicializa Firebase só 1x
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -7,40 +8,32 @@ if (!admin.apps.length) {
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       projectId: process.env.FIREBASE_PROJECT_ID,
     }),
-    databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`,
+    databaseURL: "https://contador-onlinepmd-default-rtdb.firebaseio.com",
   });
 }
 
 const db = admin.database();
 
-// Tempo máximo de inatividade para considerar alguém online (em ms)
-const TEMPO_ONLINE = 1000 * 60 * 5; // 5 minutos
-
-exports.handler = async function (event, context) {
+exports.handler = async (event, context) => {
   try {
     const snapshot = await db.ref("online").once("value");
-    const acessos = snapshot.val() || {};
+    const data = snapshot.val() || {};
 
-    const agora = Date.now();
-    const online = {};
-
-    for (const ip in acessos) {
-      const tempo = acessos[ip].timestamp;
-      if (tempo && agora - tempo <= TEMPO_ONLINE) {
-        online[ip] = tempo;
-      }
-    }
+    const acessos = Object.keys(data).map(ip => ({
+      ip: ip.replace(/_/g, "."),
+      timestamp: data[ip].timestamp
+    }));
 
     return {
       statusCode: 200,
       body: JSON.stringify({
         success: true,
-        total: Object.keys(online).length,
-        acessos: online,
+        total: acessos.length,
+        acessos
       }),
     };
   } catch (error) {
-    console.error("Erro ao listar acessos:", error);
+    console.error("Erro ao listar online:", error);
     return {
       statusCode: 500,
       body: JSON.stringify({ success: false, error: error.message }),

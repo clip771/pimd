@@ -1,5 +1,6 @@
-const admin = require('firebase-admin');
+const admin = require("firebase-admin");
 
+// Inicializa Firebase só 1x
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -7,28 +8,28 @@ if (!admin.apps.length) {
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       projectId: process.env.FIREBASE_PROJECT_ID,
     }),
-    databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`,
+    databaseURL: "https://contador-onlinepmd-default-rtdb.firebaseio.com",
   });
 }
 
 const db = admin.database();
 
-exports.handler = async function(event, context) {
+exports.handler = async (event, context) => {
   try {
-    const ref = db.ref('test');
-    await ref.set({ test: 'ok', timestamp: Date.now() });
-    const snapshot = await ref.once('value');
+    console.log("Testando leitura...");
+    const snapshot = await db.ref("/").once("value");
     const data = snapshot.val();
 
     return {
       statusCode: 200,
       body: JSON.stringify({
         success: true,
-        message: 'Conexão Firebase OK',
+        message: "Conexão Firebase OK",
         data
       }),
     };
   } catch (error) {
+    console.error("Erro ao testar Firebase:", error);
     return {
       statusCode: 500,
       body: JSON.stringify({ success: false, error: error.message }),

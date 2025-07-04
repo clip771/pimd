@@ -1,5 +1,6 @@
-const admin = require('firebase-admin');
+const admin = require("firebase-admin");
 
+// Inicializa Firebase só 1x
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -7,29 +8,25 @@ if (!admin.apps.length) {
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       projectId: process.env.FIREBASE_PROJECT_ID,
     }),
-    databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`,
+    databaseURL: "https://contador-onlinepmd-default-rtdb.firebaseio.com",
   });
 }
 
 const db = admin.database();
 
-exports.handler = async function (event, context) {
+exports.handler = async (event, context) => {
   try {
-    const ipOriginal = event.headers["x-forwarded-for"] || "desconhecido";
-    // Troca "." por "-"
-    const ip = ipOriginal.replace(/\./g, "-");
+    const ip = event.headers["x-forwarded-for"] || "desconhecido";
+    const sanitizedIp = ip.replace(/\./g, "_");
 
-    await db.ref("online").child(ip).set({
-      timestamp: Date.now(),
+    const ref = db.ref("online/" + sanitizedIp);
+    await ref.set({
+      timestamp: Date.now()
     });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        success: true,
-        ipOriginal,
-        ipFirebase: ip,
-      }),
+      body: JSON.stringify({ success: true, message: "Acesso registrado com sucesso." }),
     };
   } catch (error) {
     console.error("Erro ao registrar acesso:", error);
