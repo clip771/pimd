@@ -1,32 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Confirmação para apagar</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    input { padding: 8px; font-size: 16px; }
-    button { padding: 8px 16px; font-size: 16px; margin-left: 8px; }
-  </style>
+  <title>Confirmar e Limpar Online</title>
 </head>
 <body>
-  <h2>Confirmação para apagar dados</h2>
-  <p>Digite <strong>DELETE</strong> para habilitar o botão:</p>
-  <input id="confirmInput" type="text" placeholder="Digite DELETE aqui" />
-  <button id="deleteBtn" disabled>Apagar dados</button>
+  <h1>Apagar dados online</h1>
+  <p>Digite a palavra <strong>DELETE</strong> para confirmar:</p>
+  <input type="text" id="confirmInput" />
+  <button id="btnLimpar" disabled>Limpar Dados</button>
+
+  <p id="resultado"></p>
 
   <script>
     const input = document.getElementById('confirmInput');
-    const btn = document.getElementById('deleteBtn');
+    const btn = document.getElementById('btnLimpar');
+    const resultado = document.getElementById('resultado');
 
+    // Habilita botão só se o texto for DELETE
     input.addEventListener('input', () => {
       btn.disabled = input.value !== 'DELETE';
+      resultado.textContent = '';
     });
 
-    btn.addEventListener('click', () => {
-      alert('Função apagar ativada! Aqui você pode chamar sua função para limpar dados.');
-      // Exemplo: chamar sua função de limpar online aqui
-      // limparOnline();
+    btn.addEventListener('click', async () => {
+      resultado.textContent = 'Enviando requisição...';
+
+      try {
+        const res = await fetch('/.netlify/functions/limpar-online', {
+          method: 'POST'
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          resultado.textContent = 'Dados apagados com sucesso!';
+        } else {
+          resultado.textContent = 'Erro: ' + (data.error || 'Desconhecido');
+        }
+      } catch (err) {
+        resultado.textContent = 'Erro na requisição: ' + err.message;
+      }
     });
   </script>
 </body>
