@@ -1,4 +1,4 @@
-const admin = require("firebase-admin");
+const admin = require('firebase-admin');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -11,9 +11,29 @@ if (!admin.apps.length) {
   });
 }
 
-exports.handler = async function(event, context) {
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ success: true, message: "Conexão Firebase OK" }),
-  };
+const db = admin.database();
+
+exports.handler = async function (event, context) {
+  try {
+    // Apenas grava e lê um valor de teste
+    const ref = db.ref("test");
+    await ref.set({ timestamp: Date.now() });
+    const snapshot = await ref.once("value");
+    const data = snapshot.val();
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        success: true,
+        message: "Conexão Firebase OK",
+        data,
+      }),
+    };
+  } catch (error) {
+    console.error("Erro ao testar Firebase:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ success: false, error: error.message }),
+    };
+  }
 };

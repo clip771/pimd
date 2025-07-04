@@ -13,17 +13,34 @@ if (!admin.apps.length) {
 
 const db = admin.database();
 
-exports.handler = async function () {
+// Tempo máximo de inatividade para considerar alguém online (em ms)
+const TEMPO_ONLINE = 1000 * 60 * 5; // 5 minutos
+
+exports.handler = async function (event, context) {
   try {
-    const snapshot = await db.ref('online').once('value');
-    const data = snapshot.val() || {};
+    const snapshot = await db.ref("online").once("value");
+    const acessos = snapshot.val() || {};
+
+    const agora = Date.now();
+    const online = {};
+
+    for (const ip in acessos) {
+      const tempo = acessos[ip].timestamp;
+      if (tempo && agora - tempo <= TEMPO_ONLINE) {
+        online[ip] = tempo;
+      }
+    }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, online: data }),
+      body: JSON.stringify({
+        success: true,
+        total: Object.keys(online).length,
+        acessos: online,
+      }),
     };
   } catch (error) {
-    console.error('Erro ao listar online:', error);
+    console.error("Erro ao listar acessos:", error);
     return {
       statusCode: 500,
       body: JSON.stringify({ success: false, error: error.message }),

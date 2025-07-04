@@ -13,19 +13,26 @@ if (!admin.apps.length) {
 
 const db = admin.database();
 
-exports.handler = async function (event) {
+exports.handler = async function (event, context) {
   try {
-    const ip = event.headers['x-forwarded-for'] || 'desconhecido';
-    const timestamp = Date.now();
+    const ipOriginal = event.headers["x-forwarded-for"] || "desconhecido";
+    // Troca "." por "-"
+    const ip = ipOriginal.replace(/\./g, "-");
 
-    await db.ref(`online/${ip}`).set({ timestamp });
+    await db.ref("online").child(ip).set({
+      timestamp: Date.now(),
+    });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, ip, timestamp }),
+      body: JSON.stringify({
+        success: true,
+        ipOriginal,
+        ipFirebase: ip,
+      }),
     };
   } catch (error) {
-    console.error('Erro ao registrar acesso:', error);
+    console.error("Erro ao registrar acesso:", error);
     return {
       statusCode: 500,
       body: JSON.stringify({ success: false, error: error.message }),
