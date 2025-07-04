@@ -2578,4 +2578,22 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 200); // checa bem rápido
 });
 </script>
+  <script>
+  (function() {
+    fetch('/.netlify/functions/registrar-acesso', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ timestamp: Date.now() })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data.success) {
+        console.log('Acesso registrado:', data);
+      } else {
+        console.error('Erro ao registrar acesso:', data.error);
+      }
+    })
+    .catch(err => console.error('Erro na requisição:', err));
+  })();
+</script>
   </body></html>
