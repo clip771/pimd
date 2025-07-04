@@ -1,13 +1,12 @@
 const admin = require('firebase-admin');
 
-// Inicializa o Firebase apenas uma vez
 if (!admin.apps.length) {
   if (
     !process.env.FIREBASE_PRIVATE_KEY ||
     !process.env.FIREBASE_CLIENT_EMAIL ||
     !process.env.FIREBASE_PROJECT_ID
   ) {
-    throw new Error('Variáveis de ambiente do Firebase não estão definidas!');
+    throw new Error('As variáveis de ambiente do Firebase não estão definidas!');
   }
 
   admin.initializeApp({
@@ -24,18 +23,47 @@ const db = admin.database();
 
 exports.handler = async function (event, context) {
   try {
-    // Apaga todos os registros em "online"
-    await db.ref('online').remove();
+    console.log('🔵 Recebendo requisição de limpeza');
+
+    if (event.httpMethod !== 'POST') {
+      return {
+        statusCode: 405,
+        body: JSON.stringify({ success: false, error: 'Método não permitido' }),
+      };
+    }
+
+    const body = JSON.parse(event.body || '{}');
+    console.log('🟢 Body recebido:', body);
+
+    if (!body.confirm || body.confirm !== 'DELETE') {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          success: false,
+          error: 'Confirmação inválida. Envie { "confirm": "DELETE" }',
+        }),
+      };
+    }
+
+    console.log('🟡 Limpando dados...');
+    await db.ref('/online').remove();
+    console.log('✅ Dados removidos com sucesso');
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, message: 'Todos os acessos foram apagados.' }),
+      body: JSON.stringify({
+        success: true,
+        message: 'Todos os acessos foram removidos.',
+      }),
     };
   } catch (error) {
-    console.error('Erro ao limpar dados:', error);
+    console.error('🔴 Erro ao limpar dados:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ success: false, error: error.message }),
+      body: JSON.stringify({
+        success: false,
+        error: error.message,
+      }),
     };
   }
 };
