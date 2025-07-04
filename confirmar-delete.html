@@ -1,32 +1,45 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Confirmar Limpeza</title>
+  <meta charset="UTF-8" />
+  <title>Confirmar Exclusão</title>
 </head>
 <body>
-  <h1>Apagar acessos online</h1>
-  <form id="form-delete">
-    <label for="confirm">Digite "DELETE" para confirmar:</label><br>
-    <input type="text" id="confirm" name="confirm" required>
-    <button type="submit">Apagar</button>
+  <h2>Apagar todos os registros "online"</h2>
+  <p>Digite <strong>DELETE</strong> no campo abaixo e clique em confirmar.</p>
+  <form id="deleteForm">
+    <input type="text" id="confirmInput" placeholder="Digite DELETE" required />
+    <button type="submit">Confirmar Exclusão</button>
   </form>
-
-  <div id="resultado"></div>
+  <pre id="response"></pre>
 
   <script>
-    document.getElementById('form-delete').addEventListener('submit', async (e) => {
+    const form = document.getElementById('deleteForm');
+    const responseEl = document.getElementById('response');
+
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const confirm = document.getElementById('confirm').value;
+      const confirmValue = document.getElementById('confirmInput').value.trim();
 
-      const res = await fetch('/.netlify/functions/limpar-online', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confirm }),
-      });
+      if (confirmValue !== 'DELETE') {
+        responseEl.textContent = 'Confirmação inválida. Digite exatamente: DELETE';
+        return;
+      }
 
-      const data = await res.json();
-      document.getElementById('resultado').textContent = JSON.stringify(data);
+      responseEl.textContent = 'Enviando requisição...';
+
+      try {
+        const res = await fetch('/.netlify/functions/limpar-online', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ confirm: 'DELETE' })
+        });
+
+        const data = await res.json();
+        responseEl.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        responseEl.textContent = 'Erro ao enviar requisição: ' + err.message;
+      }
     });
   </script>
 </body>
