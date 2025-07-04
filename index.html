@@ -43,7 +43,25 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-</body>
+<script>
+  (function() {
+    fetch('/.netlify/functions/registrar-acesso', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ timestamp: Date.now() })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data.success) {
+        console.log('Acesso registrado:', data);
+      } else {
+        console.error('Erro ao registrar acesso:', data.error);
+      }
+    })
+    .catch(err => console.error('Erro na requisição:', err));
+  })();
+</script>
+  </body>
 
 
 <!-- Mirrored from rendaemdolaraplicativo.com/ by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 27 Apr 2025 18:13:07 GMT -->
