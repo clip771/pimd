@@ -21,9 +21,9 @@ if (!admin.apps.length) {
 
 const db = admin.database();
 
-exports.handler = async function (event, context) {
+exports.handler = async function(event, context) {
   try {
-    console.log('🔵 Recebendo requisição de limpeza');
+    console.log('Recebendo requisição de limpar online...');
 
     if (event.httpMethod !== 'POST') {
       return {
@@ -32,38 +32,33 @@ exports.handler = async function (event, context) {
       };
     }
 
-    const body = JSON.parse(event.body || '{}');
-    console.log('🟢 Body recebido:', body);
+    const body = JSON.parse(event.body);
+    console.log('Body recebido:', body);
 
     if (!body.confirm || body.confirm !== 'DELETE') {
       return {
         statusCode: 400,
         body: JSON.stringify({
           success: false,
-          error: 'Confirmação inválida. Envie { "confirm": "DELETE" }',
+          error: 'Confirmação inválida. Envie { confirm: "DELETE" }.',
         }),
       };
     }
 
-    console.log('🟡 Limpando dados...');
+    console.log('Apagando dados em /online...');
     await db.ref('/online').remove();
-    console.log('✅ Dados removidos com sucesso');
+
+    console.log('Dados apagados com sucesso.');
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        success: true,
-        message: 'Todos os acessos foram removidos.',
-      }),
+      body: JSON.stringify({ success: true, message: 'Todos os acessos foram removidos.' }),
     };
   } catch (error) {
-    console.error('🔴 Erro ao limpar dados:', error);
+    console.error('Erro ao limpar dados:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({
-        success: false,
-        error: error.message,
-      }),
+      body: JSON.stringify({ success: false, error: error.message }),
     };
   }
 };
