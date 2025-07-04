@@ -1,36 +1,33 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Confirmar Limpeza</title>
 </head>
 <body>
-  <h1>Confirmar Limpeza</h1>
-  <p>Digite <strong>DELETE</strong> para confirmar:</p>
-  <input type="text" id="confirmacao" placeholder="Digite DELETE" />
-  <button onclick="confirmarDelete()">Confirmar</button>
-  <pre id="resposta"></pre>
+  <h1>Apagar acessos online</h1>
+  <form id="form-delete">
+    <label for="confirm">Digite "DELETE" para confirmar:</label><br>
+    <input type="text" id="confirm" name="confirm" required>
+    <button type="submit">Apagar</button>
+  </form>
+
+  <div id="resultado"></div>
 
   <script>
-    async function confirmarDelete() {
-      const valor = document.getElementById('confirmacao').value;
-      const respostaElem = document.getElementById('resposta');
+    document.getElementById('form-delete').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const confirm = document.getElementById('confirm').value;
 
-      try {
-        const res = await fetch('/.netlify/functions/limpar-online', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ confirm: valor })
-        });
+      const res = await fetch('/.netlify/functions/limpar-online', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm }),
+      });
 
-        const resultado = await res.json();
-        respostaElem.textContent = JSON.stringify(resultado, null, 2);
-      } catch (erro) {
-        respostaElem.textContent = 'Erro: ' + erro.message;
-      }
-    }
+      const data = await res.json();
+      document.getElementById('resultado').textContent = JSON.stringify(data);
+    });
   </script>
 </body>
 </html>
