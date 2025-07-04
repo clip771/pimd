@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Confirmação para apagar</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input { padding: 8px; font-size: 16px; }
+    button { padding: 8px 16px; font-size: 16px; margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <h2>Confirmação para apagar dados</h2>
+  <p>Digite <strong>DELETE</strong> para habilitar o botão:</p>
+  <input id="confirmInput" type="text" placeholder="Digite DELETE aqui" />
+  <button id="deleteBtn" disabled>Apagar dados</button>
+
+  <script>
+    const input = document.getElementById('confirmInput');
+    const btn = document.getElementById('deleteBtn');
+
+    input.addEventListener('input', () => {
+      btn.disabled = input.value !== 'DELETE';
+    });
+
+    btn.addEventListener('click', () => {
+      alert('Função apagar ativada! Aqui você pode chamar sua função para limpar dados.');
+      // Exemplo: chamar sua função de limpar online aqui
+      // limparOnline();
+    });
+  </script>
+</body>
+</html>
