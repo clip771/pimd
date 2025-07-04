@@ -3,37 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard de Acessos</title>
+  <title>Acessos Registrados</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-light">
   <div class="container py-5">
-    <h1 class="mb-4">Dashboard de Acessos</h1>
+    <h1 class="mb-4">Acessos Registrados</h1>
 
-    <div class="row g-3 mb-4">
-      <div class="col-md-3">
-        <label class="form-label">Filtrar IP</label>
-        <input type="text" id="filterIp" class="form-control" placeholder="Ex: 123.45.67.89">
-      </div>
-      <div class="col-md-3">
-        <label class="form-label">Data Inicial</label>
-        <input type="datetime-local" id="filterStart" class="form-control">
-      </div>
-      <div class="col-md-3">
-        <label class="form-label">Data Final</label>
-        <input type="datetime-local" id="filterEnd" class="form-control">
-      </div>
-      <div class="col-md-3 d-flex align-items-end">
-        <button id="applyFilters" class="btn btn-primary w-100">Aplicar Filtros</button>
-      </div>
-    </div>
+    <button id="limparBtn" class="btn btn-danger mb-3">Limpar Acessos</button>
+    <button id="refreshBtn" class="btn btn-secondary mb-3 ms-2">Atualizar Lista</button>
 
-    <button id="refreshBtn" class="btn btn-secondary mb-3">Atualizar Dados</button>
-
-    <canvas id="accessChart" height="100"></canvas>
-
-    <table class="table table-striped table-bordered mt-4">
+    <table class="table table-striped table-bordered mt-3">
       <thead>
         <tr>
           <th>#</th>
@@ -48,9 +28,6 @@
   </div>
 
   <script>
-    let allAcessos = [];
-    let chart = null;
-
     async function carregarAcessos() {
       const tbody = document.getElementById('accessTableBody');
       tbody.innerHTML = '<tr><td colspan="3">Carregando...</td></tr>';
@@ -64,102 +41,53 @@
           return;
         }
 
-        allAcessos = data.acessos || [];
-        aplicarFiltros();
+        const acessos = data.acessos || [];
+
+        if (acessos.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3">Nenhum acesso registrado.</td></tr>';
+        } else {
+          tbody.innerHTML = '';
+          acessos.forEach((acesso, index) => {
+            const date = new Date(acesso.timestamp);
+            const row = `
+              <tr>
+                <td>${index + 1}</td>
+                <td>${acesso.ip}</td>
+                <td>${date.toLocaleString('pt-BR')}</td>
+              </tr>
+            `;
+            tbody.insertAdjacentHTML('beforeend', row);
+          });
+        }
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="3" class="text-danger">Erro na requisição.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3" class="text-danger">Erro ao carregar dados.</td></tr>`;
         console.error(err);
       }
     }
 
-    function aplicarFiltros() {
-      const tbody = document.getElementById('accessTableBody');
-      const ipFilter = document.getElementById('filterIp').value.trim();
-      const startDate = document.getElementById('filterStart').value;
-      const endDate = document.getElementById('filterEnd').value;
+    async function limparAcessos() {
+      if (!confirm('Tem certeza que deseja limpar TODOS os acessos?')) return;
 
-      let filtrados = allAcessos.slice();
+      try {
+        const res = await fetch('/.netlify/functions/limpar-online', { method: 'POST' });
+        const data = await res.json();
 
-      if (ipFilter) {
-        filtrados = filtrados.filter(a => a.ip.includes(ipFilter));
-      }
-
-      if (startDate) {
-        const startTs = new Date(startDate).getTime();
-        filtrados = filtrados.filter(a => a.timestamp >= startTs);
-      }
-
-      if (endDate) {
-        const endTs = new Date(endDate).getTime();
-        filtrados = filtrados.filter(a => a.timestamp <= endTs);
-      }
-
-      if (filtrados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3">Nenhum acesso encontrado.</td></tr>';
-      } else {
-        tbody.innerHTML = '';
-        filtrados.forEach((acesso, index) => {
-          const date = new Date(acesso.timestamp);
-          const row = `
-            <tr>
-              <td>${index + 1}</td>
-              <td>${acesso.ip}</td>
-              <td>${date.toLocaleString('pt-BR')}</td>
-            </tr>
-          `;
-          tbody.insertAdjacentHTML('beforeend', row);
-        });
-      }
-
-      desenharGrafico(filtrados);
-    }
-
-    function desenharGrafico(acessos) {
-      const ctx = document.getElementById('accessChart').getContext('2d');
-
-      // Agrupar por hora
-      const contagemPorHora = {};
-      acessos.forEach(a => {
-        const hora = new Date(a.timestamp).toLocaleString('pt-BR', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit'
-        });
-        contagemPorHora[hora] = (contagemPorHora[hora] || 0) + 1;
-      });
-
-      const labels = Object.keys(contagemPorHora).sort();
-      const dados = labels.map(l => contagemPorHora[l]);
-
-      if (chart) {
-        chart.destroy();
-      }
-
-      chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Acessos por hora',
-            data: dados,
-            backgroundColor: '#0d6efd'
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false }
-          }
+        if (data.success) {
+          alert('Acessos limpos com sucesso!');
+          carregarAcessos();
+        } else {
+          alert(`Erro: ${data.error}`);
         }
-      });
+      } catch (err) {
+        alert('Erro na requisição.');
+        console.error(err);
+      }
     }
 
     document.getElementById('refreshBtn').addEventListener('click', carregarAcessos);
-    document.getElementById('applyFilters').addEventListener('click', aplicarFiltros);
+    document.getElementById('limparBtn').addEventListener('click', limparAcessos);
 
     carregarAcessos();
-    setInterval(carregarAcessos, 60000);
   </script>
 </body>
 </html>
