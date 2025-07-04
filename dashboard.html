@@ -3,89 +3,342 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Acessos Registrados</title>
+  <title>Super Painel de Acessos</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body.dark-mode {
+      background-color: #121212 !important;
+      color: #f1f1f1;
+    }
+    body.dark-mode .table {
+      color: #f1f1f1;
+    }
+    body.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+      background-color: rgba(255,255,255,0.05);
+    }
+    .sortable:hover {
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .pagination {
+      justify-content: center;
+    }
+    .ip-suspeito {
+      background-color: #ffdddd !important;
+    }
+  </style>
 </head>
 <body class="bg-light">
-  <div class="container py-5">
-    <h1 class="mb-4">Acessos Registrados</h1>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1 class="mb-0">Super Painel de Acessos</h1>
+      <button id="toggleDarkBtn" class="btn btn-dark" title="Ativar/Desativar Modo Escuro">Modo Escuro</button>
+    </div>
 
-    <button id="limparBtn" class="btn btn-danger mb-3">Limpar Acessos</button>
-    <button id="refreshBtn" class="btn btn-secondary mb-3 ms-2">Atualizar Lista</button>
+    <!-- Filtros -->
+    <div class="mb-3 d-flex flex-wrap gap-2">
+      <input type="text" id="searchInput" class="form-control" placeholder="Buscar por IP...">
+      <input type="date" id="dateFrom" class="form-control" title="Data inicial">
+      <input type="date" id="dateTo" class="form-control" title="Data final">
+      <select id="densitySelect" class="form-select" style="width:auto;">
+        <option value="normal">Densidade Normal</option>
+        <option value="compact">Compacta</option>
+        <option value="spaced">Espaçada</option>
+      </select>
+      <select id="autoRefreshSelect" class="form-select" style="width:auto;">
+        <option value="0">Auto-refresh: Desativado</option>
+        <option value="5">Auto-refresh: 5s</option>
+        <option value="10">Auto-refresh: 10s</option>
+        <option value="30">Auto-refresh: 30s</option>
+        <option value="60">Auto-refresh: 60s</option>
+      </select>
+      <button id="exportCsvBtn" class="btn btn-success" title="Exportar como CSV">Exportar CSV</button>
+      <button id="exportJsonBtn" class="btn btn-info" title="Exportar como JSON">Exportar JSON</button>
+      <button id="printBtn" class="btn btn-primary" title="Imprimir Relatório">Imprimir</button>
+      <button id="limparBtn" class="btn btn-danger">Limpar Acessos</button>
+      <button id="refreshBtn" class="btn btn-secondary">Atualizar</button>
+    </div>
 
-    <table class="table table-striped table-bordered mt-3">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>IP</th>
-          <th>Data e Hora</th>
-        </tr>
-      </thead>
-      <tbody id="accessTableBody">
-        <tr><td colspan="3">Carregando...</td></tr>
-      </tbody>
-    </table>
+    <div id="totalCount" class="mb-2 fw-bold">Total de acessos: 0</div>
+
+    <!-- Tabela -->
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered" id="accessTable">
+        <thead>
+          <tr>
+            <th class="sortable" data-sort="index">#</th>
+            <th class="sortable" data-sort="ip">IP</th>
+            <th>País</th>
+            <th class="sortable" data-sort="date">Data e Hora</th>
+          </tr>
+        </thead>
+        <tbody id="accessTableBody">
+          <tr><td colspan="4">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <nav>
+      <ul class="pagination" id="pagination"></ul>
+    </nav>
+
+    <!-- Gráfico -->
+    <canvas id="accessChart" height="100"></canvas>
   </div>
 
+  <!-- Toast container -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="toastContainer"></div>
+  </div>
+
+  <!-- Modal confirmação -->
+  <div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirmação</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          Tem certeza que deseja limpar TODOS os acessos?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="confirmClear">Limpar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    const tbody = document.getElementById('accessTableBody');
+    const totalCountEl = document.getElementById('totalCount');
+    const searchInput = document.getElementById('searchInput');
+    const dateFrom = document.getElementById('dateFrom');
+    const dateTo = document.getElementById('dateTo');
+    const paginationEl = document.getElementById('pagination');
+    const densitySelect = document.getElementById('densitySelect');
+    let allData = [];
+    let currentPage = 1;
+    const pageSize = 10;
+    let currentSort = { column: 'index', asc: true };
+    let autoRefreshInterval = null;
+    let chart;
+
+    // Modo escuro persistente
+    const toggleDarkBtn = document.getElementById('toggleDarkBtn');
+    toggleDarkBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    });
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+
+    document.getElementById('autoRefreshSelect').addEventListener('change', e => {
+      clearInterval(autoRefreshInterval);
+      const interval = parseInt(e.target.value);
+      if (interval > 0) {
+        autoRefreshInterval = setInterval(carregarAcessos, interval * 1000);
+      }
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', carregarAcessos);
+    document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
+    document.getElementById('exportJsonBtn').addEventListener('click', exportJSON);
+    document.getElementById('printBtn').addEventListener('click', () => window.print());
+    document.getElementById('limparBtn').addEventListener('click', () => new bootstrap.Modal('#confirmModal').show());
+    document.getElementById('confirmClear').addEventListener('click', limparAcessos);
+    densitySelect.addEventListener('change', () => {
+      const table = document.getElementById('accessTable');
+      table.classList.remove('table-sm');
+      table.style.marginBottom = '';
+      if (densitySelect.value === 'compact') {
+        table.classList.add('table-sm');
+      } else if (densitySelect.value === 'spaced') {
+        table.style.marginBottom = '2rem';
+      }
+    });
+
+    // Ordenação
+    document.querySelectorAll('.sortable').forEach(th => {
+      th.addEventListener('click', () => {
+        const sortKey = th.dataset.sort;
+        if (currentSort.column === sortKey) {
+          currentSort.asc = !currentSort.asc;
+        } else {
+          currentSort = { column: sortKey, asc: true };
+        }
+        renderTable();
+      });
+    });
+
+    // Busca e filtros
+    searchInput.addEventListener('input', renderTable);
+    dateFrom.addEventListener('change', renderTable);
+    dateTo.addEventListener('change', renderTable);
+
+    // Atalhos
+    document.addEventListener('keydown', e => {
+      if (e.key === 'F5') {
+        e.preventDefault();
+        carregarAcessos();
+      } else if (e.key.toLowerCase() === 'd') {
+        toggleDarkBtn.click();
+      }
+    });
+
     async function carregarAcessos() {
-      const tbody = document.getElementById('accessTableBody');
-      tbody.innerHTML = '<tr><td colspan="3">Carregando...</td></tr>';
-
+      showLoading();
       try {
-        const res = await fetch('/.netlify/functions/listar-online');
-        const data = await res.json();
-
+        // SIMULAÇÃO DE DADOS
+        await new Promise(r => setTimeout(r, 500));
+        const data = {
+          success: true,
+          acessos: Array.from({length:50},(_,i)=>({
+            ip:`192.168.0.${i+1}`,
+            timestamp: Date.now() - i*60000,
+            country: i%2==0?"Brasil":"Portugal"
+          }))
+        };
         if (!data.success) {
-          tbody.innerHTML = `<tr><td colspan="3" class="text-danger">Erro: ${data.error}</td></tr>`;
+          showError(data.error || 'Erro desconhecido.');
           return;
         }
-
-        const acessos = data.acessos || [];
-
-        if (acessos.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="3">Nenhum acesso registrado.</td></tr>';
-        } else {
-          tbody.innerHTML = '';
-          acessos.forEach((acesso, index) => {
-            const date = new Date(acesso.timestamp);
-            const row = `
-              <tr>
-                <td>${index + 1}</td>
-                <td>${acesso.ip}</td>
-                <td>${date.toLocaleString('pt-BR')}</td>
-              </tr>
-            `;
-            tbody.insertAdjacentHTML('beforeend', row);
-          });
-        }
+        allData = data.acessos.map((acesso, index) => ({
+          index: index + 1,
+          ip: acesso.ip,
+          date: new Date(acesso.timestamp),
+          country: acesso.country
+        }));
+        currentPage = 1;
+        renderTable();
+        renderChart();
+        showToast('Lista atualizada.', 'success');
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="3" class="text-danger">Erro ao carregar dados.</td></tr>`;
-        console.error(err);
+        showError('Falha ao carregar dados.');
       }
+    }
+
+    function renderTable() {
+      let filtered = allData.filter(r => {
+        const q = searchInput.value.trim();
+        const matchIP = r.ip.includes(q);
+        const matchDateFrom = !dateFrom.value || r.date >= new Date(dateFrom.value);
+        const matchDateTo = !dateTo.value || r.date <= new Date(dateTo.value + "T23:59:59");
+        return matchIP && matchDateFrom && matchDateTo;
+      });
+      filtered.sort((a, b) => {
+        let va = a[currentSort.column];
+        let vb = b[currentSort.column];
+        if (va instanceof Date) va = va.getTime();
+        if (vb instanceof Date) vb = vb.getTime();
+        return currentSort.asc ? va - vb : vb - va;
+      });
+      totalCountEl.textContent = `Mostrando ${filtered.length} de ${allData.length} acessos`;
+
+      const totalPages = Math.ceil(filtered.length / pageSize);
+      if (currentPage > totalPages) currentPage = 1;
+      const start = (currentPage -1)*pageSize;
+      const pageData = filtered.slice(start, start+pageSize);
+
+      tbody.innerHTML = '';
+      if (pageData.length==0) {
+        tbody.innerHTML = '<tr><td colspan="4">Nenhum acesso encontrado.</td></tr>';
+      } else {
+        pageData.forEach(row => {
+          const recent = (Date.now() - row.date.getTime()) < 3600000;
+          tbody.insertAdjacentHTML('beforeend', `
+          <tr class="${recent?"table-warning":""}">
+            <td>${row.index}</td>
+            <td>${row.ip}</td>
+            <td>${row.country}</td>
+            <td>${row.date.toLocaleString('pt-BR')}</td>
+          </tr>`);
+        });
+      }
+      renderPagination(totalPages);
+    }
+
+    function renderPagination(total) {
+      paginationEl.innerHTML='';
+      for (let i=1;i<=total;i++) {
+        const li=document.createElement('li');
+        li.className='page-item'+(i===currentPage?' active':'');
+        li.innerHTML=`<a class="page-link" href="#">${i}</a>`;
+        li.addEventListener('click',e=>{
+          e.preventDefault();
+          currentPage=i;
+          renderTable();
+        });
+        paginationEl.appendChild(li);
+      }
+    }
+
+    function showLoading() {
+      tbody.innerHTML='<tr><td colspan="4"><div class="spinner-border"></div> Carregando...</td></tr>';
+    }
+
+    function showToast(msg, type) {
+      const toast=document.createElement('div');
+      toast.className=`toast text-bg-${type} border-0`;
+      toast.setAttribute('role','alert');
+      toast.innerHTML=`<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white ms-auto me-2" data-bs-dismiss="toast"></button></div>`;
+      document.getElementById('toastContainer').appendChild(toast);
+      new bootstrap.Toast(toast).show();
+    }
+
+    function showError(msg){showToast(msg,'danger');}
+
+    function exportCSV() {
+      if(!allData.length){showError('Nada para exportar.');return;}
+      let csv='Index,IP,País,Data\n';
+      allData.forEach(r=>{
+        csv+=`${r.index},"${r.ip}","${r.country}","${r.date.toLocaleString('pt-BR')}"\n`;
+      });
+      const blob=new Blob([csv],{type:'text/csv'});
+      const link=document.createElement('a');
+      link.href=URL.createObjectURL(blob);
+      link.download='acessos.csv';
+      link.click();
+    }
+
+    function exportJSON() {
+      if(!allData.length){showError('Nada para exportar.');return;}
+      const blob=new Blob([JSON.stringify(allData)],{type:'application/json'});
+      const link=document.createElement('a');
+      link.href=URL.createObjectURL(blob);
+      link.download='acessos.json';
+      link.click();
     }
 
     async function limparAcessos() {
-      if (!confirm('Tem certeza que deseja limpar TODOS os acessos?')) return;
-
-      try {
-        const res = await fetch('/.netlify/functions/limpar-online', { method: 'POST' });
-        const data = await res.json();
-
-        if (data.success) {
-          alert('Acessos limpos com sucesso!');
-          carregarAcessos();
-        } else {
-          alert(`Erro: ${data.error}`);
-        }
-      } catch (err) {
-        alert('Erro na requisição.');
-        console.error(err);
-      }
+      showToast('Acessos limpos (simulado).','success');
+      allData=[];
+      renderTable();
+      renderChart();
+      bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
     }
 
-    document.getElementById('refreshBtn').addEventListener('click', carregarAcessos);
-    document.getElementById('limparBtn').addEventListener('click', limparAcessos);
+    function renderChart() {
+      if(chart) chart.destroy();
+      const ctx=document.getElementById('accessChart');
+      const counts={};
+      allData.forEach(r=>{
+        const d=r.date.toLocaleDateString();
+        counts[d]=(counts[d]||0)+1;
+      });
+      chart=new Chart(ctx,{
+        type:'bar',
+        data:{
+          labels:Object.keys(counts),
+          datasets:[{label:'Acessos por Dia',data:Object.values(counts),backgroundColor:'rgba(54,162,235,0.5)'}]
+        },
+        options:{responsive:true}
+      });
+    }
 
     carregarAcessos();
   </script>
