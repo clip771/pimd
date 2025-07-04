@@ -1,14 +1,7 @@
-const admin = require('firebase-admin');
+const admin = require("firebase-admin");
 
+// Inicializa Firebase só 1x
 if (!admin.apps.length) {
-  if (
-    !process.env.FIREBASE_PRIVATE_KEY ||
-    !process.env.FIREBASE_CLIENT_EMAIL ||
-    !process.env.FIREBASE_PROJECT_ID
-  ) {
-    throw new Error('As variáveis de ambiente do Firebase não estão definidas!');
-  }
-
   admin.initializeApp({
     credential: admin.credential.cert({
       privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
@@ -21,31 +14,23 @@ if (!admin.apps.length) {
 
 const db = admin.database();
 
-exports.handler = async function (event, context) {
+exports.handler = async (event, context) => {
   try {
-    // Aceita GET e POST
-    if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
-      return {
-        statusCode: 405,
-        body: JSON.stringify({ success: false, error: 'Método não permitido' }),
-      };
-    }
+    const ip = event.headers["x-forwarded-for"] || "desconhecido";
+    const sanitizedIp = ip.replace(/\./g, "_");
 
-    const ipRaw = event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'desconhecido';
-    const ip = `CK-${ipRaw.split(',')[0].trim()}`;
-
-    const ref = db.ref('online');
-    await ref.push({
-      ip,
+    const ref = db.ref("online/" + sanitizedIp);
+    await ref.set({
       timestamp: Date.now(),
+      mark: "CK"
     });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, message: 'Acesso CK registrado com sucesso.' }),
+      body: JSON.stringify({ success: true, message: "Acesso registrado com marcação CK." }),
     };
   } catch (error) {
-    console.error('Erro ao registrar acesso:', error);
+    console.error("Erro ao registrar acesso com CK:", error);
     return {
       statusCode: 500,
       body: JSON.stringify({ success: false, error: error.message }),
