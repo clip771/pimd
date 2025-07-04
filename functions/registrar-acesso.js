@@ -1,14 +1,6 @@
 const admin = require('firebase-admin');
 
 if (!admin.apps.length) {
-  if (
-    !process.env.FIREBASE_PRIVATE_KEY ||
-    !process.env.FIREBASE_CLIENT_EMAIL ||
-    !process.env.FIREBASE_PROJECT_ID
-  ) {
-    throw new Error('As variáveis de ambiente do Firebase não estão definidas!');
-  }
-
   admin.initializeApp({
     credential: admin.credential.cert({
       privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
@@ -23,24 +15,17 @@ const db = admin.database();
 
 exports.handler = async function (event) {
   try {
-    const body = JSON.parse(event.body || '{}');
-    if (!body.userId) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ success: false, error: 'Faltando userId' }),
-      };
-    }
+    const ip = event.headers['x-forwarded-for'] || 'desconhecido';
+    const timestamp = Date.now();
 
-    // Salva timestamp do acesso com userId como chave
-    await db.ref(`onlineUsers/${body.userId}`).set({
-      lastAccess: Date.now(),
-    });
+    await db.ref(`online/${ip}`).set({ timestamp });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, message: 'Acesso registrado' }),
+      body: JSON.stringify({ success: true, ip, timestamp }),
     };
   } catch (error) {
+    console.error('Erro ao registrar acesso:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ success: false, error: error.message }),
