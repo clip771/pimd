@@ -197,7 +197,7 @@ function mostrarVideo() {
 
   setTimeout(() => {
     document.getElementById('liberarBtn').classList.remove('hidden')
-  }, 533000)
+  }, 100666)
 }
 
 
@@ -351,7 +351,7 @@ function mostrarVideoFinalCompleto() {
 
   setTimeout(() => {
     document.getElementById('liberarFinal').classList.remove('hidden')
-  }, 260000)
+  }, 100666)
 }
 
 function redirecionarFinal() {
