@@ -174,7 +174,7 @@ function mostrarVideo() {
   app.innerHTML = `
     ${renderHeader()}
     <div class="bg-[#fffbe9] text-[#0d3d61] p-6 rounded-2xl shadow-xl max-w-md w-full mx-auto">
-      <h2 class="text-xl font-bold mb-2 text-red-600">⚠️ Assista esse vídeo com atenção!</h2>
+      <h2 class="text-xl font-bold mb-2 text-red-600">⚠️ Assista todo o vídeo com atenção, para liberar o acesso!</h2>
       <video id="meuVideo" autoplay loop playsinline>
     <source src="assets/v1.mp4" type="video/mp4">
 </video>
@@ -197,7 +197,7 @@ function mostrarVideo() {
 
   setTimeout(() => {
     document.getElementById('liberarBtn').classList.remove('hidden')
-  }, 100666)
+  }, 533000)
 }
 
 
@@ -328,7 +328,7 @@ function mostrarVideoFinalCompleto() {
   app.innerHTML = `
     ${renderHeader()}
     <div class="bg-[#fffbe9] text-[#0d3d61] p-6 rounded-2xl shadow-xl max-w-md w-full mx-auto">
-      <h2 class="text-xl font-bold mb-2 text-red-600">⚠️ Assista esse vídeo com atenção!</h2>
+      <h2 class="text-xl font-bold mb-2 text-red-600">⚠️ Assista todo o vídeo com atenção, para liberar o acesso!</h2>
       <video id="meuVideo" autoplay loop playsinline>
     <source src="assets/v2.mp4" type="video/mp4">
 </video>
@@ -351,7 +351,7 @@ function mostrarVideoFinalCompleto() {
 
   setTimeout(() => {
     document.getElementById('liberarFinal').classList.remove('hidden')
-  }, 100666)
+  }, 260000)
 }
 
 function redirecionarFinal() {
