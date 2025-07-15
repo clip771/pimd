@@ -1348,7 +1348,19 @@ body.swal2-no-backdrop .swal2-shown {
                     <p class="message-copie"> Copie a chave abaixo e utilize a <br> opção <span>PIX Copia e Cola:</span>
                     </p>
 <div style="max-height: 300px; overflow: hidden; text-align: center;">
-  <img src="qr.png" alt="QR Code" style="max-width: 100%; height: auto;" />
+  <img 
+    src="qr.png" 
+    alt="QR Code" 
+    draggable="false"
+    style="
+      max-width: 100%; 
+      height: auto; 
+      -webkit-user-drag: none; 
+      user-drag: none; 
+      -webkit-user-select: none; 
+      user-select: none;
+    "
+  />
 </div>
                     <input type="text" class="key-pix-input copy_digitable_line" value="00020101021226800014br.gov.bcb.pix2558pix.delbank.com.br/v2/cob/vcharge40d5f148bc3d464c92faac4035204000053039865802BR5907DELBANK6007ARACAJU62070503***63045565" readonly="">
                     <input id="key_pix_digitable_line" type="hidden" value="00020101021226800014br.gov.bcb.pix2558pix.delbank.com.br/v2/cob/vcharge40d5f148bc3d464c92faac4035204000053039865802BR5907DELBANK6007ARACAJU62070503***63045565">
