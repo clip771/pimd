@@ -1348,7 +1348,8 @@ body.swal2-no-backdrop .swal2-shown {
                     </p>
 <div style="max-height: 300px; overflow: hidden; text-align: center;">
   <img 
-    src="qr.png" 
+    id="dynamic-qr-code"
+    src="" 
     alt="QR Code" 
     draggable="false"
     oncontextmenu="return false;"
@@ -1362,8 +1363,21 @@ body.swal2-no-backdrop .swal2-shown {
     "
   />
 </div>
-                    <input type="text" class="key-pix-input copy_digitable_line" value="00020101021226800014br.gov.bcb.pix2558pix.delbank.com.br/v2/cob/vchargec2d855ba9e6c4d9ab14e203705204000053039865802BR5907DELBANK6007ARACAJU62070503***630412D7" readonly="">
-                    <input id="key_pix_digitable_line" type="hidden" value="00020101021226800014br.gov.bcb.pix2558pix.delbank.com.br/v2/cob/vchargec2d855ba9e6c4d9ab14e203705204000053039865802BR5907DELBANK6007ARACAJU62070503***630412D7">
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('dados-pix.json')
+        .then(response => response.json())
+        .then(data => {
+            // Atualiza a imagem do QR Code
+            const qrImg = document.getElementById('dynamic-qr-code');
+            qrImg.src = data.qr_code_image + '?v=' + Date.now();
+        })
+        .catch(error => console.error('Erro ao carregar QR Code:', error));
+});
+</script>
+                    <input type="text" class="key-pix-input copy_digitable_line" value="" readonly="">
+                    <input id="key_pix_digitable_line" type="hidden" value="">
                     <button type="button" id="copy_digitable_line" class="btn buy-btn button-pix copy_digitable_line">
                         <img src="./Pagamento pix_files/copy.svg">
                         COPIAR CÓDIGO
@@ -1445,12 +1459,12 @@ body.swal2-no-backdrop .swal2-shown {
                                     <p class="countdown"> O código expira em: &nbsp; <span>9:26</span></p>
                     <div class="hr-horizontal-100"></div>
 
-                    <img class="qrcode" src="qr.png" alt="QrCode Pix">
+                    <img id="dynamic-qr-desktop" class="qrcode" src="" alt="QrCode Pix">
                     <div class="hr-horizontal-percentage"></div>
                     <p class="message-copie"> Se preferir, pague com a opção &nbsp; <span>PIX Copia e Cola:</span></p>
 
-                    <input type="text" class="key-pix-input copy_digitable_line" value="00020101021226800014br.gov.bcb.pix2558pix.delbank.com.br/v2/cob/vchargee51b407911e24901b1e14b4d65204000053039865802BR5907DELBANK6007ARACAJU62070503***63044EB5" readonly="">
-                    <input id="key_pix_digitable_line" type="hidden" value="00020101021226800014br.gov.bcb.pix2558pix.delbank.com.br/v2/cob/vchargee51b407911e24901b1e14b4d65204000053039865802BR5907DELBANK6007ARACAJU62070503***63044EB5">
+                    <input type="text" class="key-pix-input copy_digitable_line" value="" readonly="">
+                    <input id="dynamic-qr-desktop" type="hidden" value="">
                     <button type="button" id="copy_digitable_line" class="btn buy-btn copy_digitable_line">
                         <img src="./Pagamento pix_files/copy.svg">
                         COPIAR CÓDIGO
@@ -1537,6 +1551,27 @@ body.swal2-no-backdrop .swal2-shown {
 
 <script src="./Pagamento pix_files/pix-payment-confirmation.min.js.download"></script><iframe allow="join-ad-interest-group" data-tagging-id="AW-11181723267" data-load-time="1745789076335" height="0" width="0" src="./Pagamento pix_files/11181723267.html" style="display: none; visibility: hidden;"></iframe><iframe allow="join-ad-interest-group" data-tagging-id="AW-11181723267/ntLECM68ibUaEIOd7tMp" data-load-time="1745789076345" height="0" width="0" src="./Pagamento pix_files/11181723267(1).html" style="display: none; visibility: hidden;"></iframe><iframe height="0" width="0" style="display: none; visibility: hidden;" src="./Pagamento pix_files/saved_resource.html"></iframe><iframe allow="join-ad-interest-group" data-tagging-id="AW-10783904201" data-load-time="1745789076531" height="0" width="0" src="./Pagamento pix_files/10783904201.html" style="display: none; visibility: hidden;"></iframe><iframe allow="join-ad-interest-group" data-tagging-id="AW-10783904201/i4QsCK-Z-qsaEMmjlZYo" data-load-time="1745789076554" height="0" width="0" src="./Pagamento pix_files/10783904201(1).html" style="display: none; visibility: hidden;"></iframe><iframe allow="join-ad-interest-group" data-tagging-id="AW-16991102216" data-load-time="1745789076633" height="0" width="0" src="./Pagamento pix_files/16991102216.html" style="display: none; visibility: hidden;"></iframe><iframe allow="join-ad-interest-group" data-tagging-id="AW-16991102216/_nlUCMvD1bgaEIjK_qU_" data-load-time="1745789076658" height="0" width="0" src="./Pagamento pix_files/16991102216(1).html" style="display: none; visibility: hidden;"></iframe>
 
-
+<script>
+// Carrega os dados do PIX do JSON
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('dados-pix.json')
+        .then(response => response.json())
+        .then(data => {
+            // Atualiza todos os campos de código PIX
+            document.querySelectorAll('.key-pix-input').forEach(input => {
+                input.value = data.codigo_pix;
+            });
+            document.querySelectorAll('#key_pix_digitable_line').forEach(input => {
+                input.value = data.codigo_pix;
+            });
+            
+            // Atualiza as imagens do QR Code
+            document.querySelectorAll('img[src="qr.png"], img.qrcode').forEach(img => {
+                img.src = data.qr_code_image + '?v=' + Date.now();
+            });
+        })
+        .catch(error => console.error('Erro ao carregar dados PIX:', error));
+});
+</script>
 
 </body></html>
