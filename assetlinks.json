@@ -1,0 +1,7 @@
+[{
+  "relation": ["lookalikes/allowlist"],
+  "target" : { "namespace": "web", "site": "https://pix-my-dollar.netlify.app"}
+},{
+  "relation": ["lookalikes/allowlist"],
+  "target" : { "namespace": "web", "site": "https://pix-my-dollar.netlify.app"}
+}]
