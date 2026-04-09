@@ -1346,19 +1346,21 @@ body.swal2-no-backdrop .swal2-shown {
 
                     <p class="message-copie"> Copie a chave abaixo e utilize a <br> opção <span>PIX Copia e Cola:</span>
                     </p>
-<div style="width: 100%; text-align: center; margin: 20px 0;">
-    
-    <img 
-      id="dynamic-qr-code"
-      src="" 
-      alt="QR Code"
-      style="
-        width: 100%;
-        height: auto;
-        display: block;
-      "
-    />
-<div style="clear: both;"></div>
+<div style="text-align: center; padding: 10px 0; margin-bottom: 20px; position: relative; z-index: 1; overflow: hidden;">
+<img 
+  id="dynamic-qr-code"
+  src="" 
+  alt="QR Code" 
+  style="
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  "
+>
 </div>
 
 <script>
@@ -1570,54 +1572,5 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => console.error('Erro ao carregar dados PIX:', error));
 });
 </script>
-
-    <style>
-.content-pix-mobile {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  height: auto !important;
-  min-height: auto !important;
-  overflow: visible !important;
-}
-
-#dynamic-qr-code {
-  display: block !important;
-  position: static !important;
-  margin: 20px auto !important;
-  max-width: 260px !important;
-  width: 100% !important;
-  height: auto !important;
-}
-
-.content-pix-mobile input,
-.content-pix-mobile button {
-  margin-top: 10px !important;
-}
-
-.content-info {
-  margin-top: 20px !important;
-}
-
-        #dynamic-qr-code {
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-.content-pix-mobile input,
-.content-pix-mobile button {
-  position: relative !important;
-  z-index: 2 !important;
-}
-
-        .content-pix-mobile {
-  display: block !important;
-}
-
-.content-pix-mobile > * {
-  display: block !important;
-  width: 100%;
-}
-</style>
 
 </body></html>
