@@ -1346,8 +1346,7 @@ body.swal2-no-backdrop .swal2-shown {
 
                     <p class="message-copie"> Copie a chave abaixo e utilize a <br> opção <span>PIX Copia e Cola:</span>
                     </p>
-<div style="width: 100%; display: flex; justify-content: center; margin: 20px 0;">
-  <div style="width: 100%; max-width: 280px;">
+<div style="width: 100%; text-align: center; margin: 20px 0;">
     
     <img 
       id="dynamic-qr-code"
@@ -1360,7 +1359,6 @@ body.swal2-no-backdrop .swal2-shown {
       "
     />
 
-  </div>
 </div>
 
 <script>
@@ -1574,46 +1572,31 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
     <style>
-  .content-pix-mobile img#dynamic-qr-code {
-    width: 100% !important;
-    max-width: 280px !important;
-    height: auto !important;
-    display: block !important;
-    margin: 0 auto !important;
-    position: relative !important;
-    z-index: 1;
-  }
-
   .content-pix-mobile {
-    overflow: visible !important;
-  }
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  height: auto !important;
+  min-height: auto !important;
+  overflow: hidden !important;
+}
 
-  .content-pix-mobile .message-purchase,
-  .content-pix-mobile .info-wrapper,
-  .content-pix-mobile .details-wrapper {
-    position: relative;
-    z-index: 2;
-  }
-</style>
+#dynamic-qr-code {
+  width: 100% !important;
+  max-width: 260px !important;
+  height: auto !important;
+  display: block !important;
+  margin: 15px auto !important;
+}
 
-    <style>
-  .content-pix-mobile {
-    height: auto !important;
-    min-height: auto !important;
-    overflow: visible !important;
-  }
+.content-pix-mobile input,
+.content-pix-mobile button {
+  margin-top: 10px !important;
+}
 
-  .content-pix-mobile .message-copie {
-    margin-bottom: 10px;
-  }
-
-  #dynamic-qr-code {
-    width: 100% !important;
-    max-width: 260px !important;
-    height: auto !important;
-    display: block !important;
-    margin: 10px auto !important;
-  }
+.content-info {
+  margin-top: 20px !important;
+}
 </style>
 
 </body></html>
