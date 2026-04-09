@@ -1358,7 +1358,7 @@ body.swal2-no-backdrop .swal2-shown {
         display: block;
       "
     />
-
+<div style="clear: both;"></div>
 </div>
 
 <script>
@@ -1582,11 +1582,12 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 #dynamic-qr-code {
-  width: 100% !important;
-  max-width: 260px !important;
-  height: auto !important;
   display: block !important;
-  margin: 15px auto !important;
+  position: static !important;
+  margin: 20px auto !important;
+  max-width: 260px !important;
+  width: 100% !important;
+  height: auto !important;
 }
 
 .content-pix-mobile input,
@@ -1607,6 +1608,15 @@ document.addEventListener('DOMContentLoaded', function() {
 .content-pix-mobile button {
   position: relative !important;
   z-index: 2 !important;
+}
+
+        .content-pix-mobile {
+  display: block !important;
+}
+
+.content-pix-mobile > * {
+  display: block !important;
+  width: 100%;
 }
 </style>
 
