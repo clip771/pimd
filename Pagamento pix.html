@@ -1346,21 +1346,22 @@ body.swal2-no-backdrop .swal2-shown {
 
                     <p class="message-copie"> Copie a chave abaixo e utilize a <br> opção <span>PIX Copia e Cola:</span>
                     </p>
-<div style="text-align: center; padding: 10px 0; margin-bottom: 20px; position: relative; z-index: 1; overflow: hidden;">
-<img 
-  id="dynamic-qr-code"
-  src="" 
-  alt="QR Code" 
-  style="
-    width: 100%;
-    max-width: 300px;
-    height: auto;
-    display: block;
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
-  "
->
+<div style="text-align: center; padding: 10px 0; margin-bottom: 20px;">
+  <img 
+    id="dynamic-qr-code"
+    src="" 
+    alt="QR Code" 
+    draggable="false"
+    oncontextmenu="return false;"
+    style="
+      width: 100%;
+      max-width: 280px;
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    "
+  />
 </div>
 
 <script>
