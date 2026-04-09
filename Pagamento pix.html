@@ -1346,7 +1346,7 @@ body.swal2-no-backdrop .swal2-shown {
 
                     <p class="message-copie"> Copie a chave abaixo e utilize a <br> opção <span>PIX Copia e Cola:</span>
                     </p>
-<div style="text-align: center;">
+<div style="text-align: center; padding: 10px 0;">
   <img 
     id="dynamic-qr-code"
     src="" 
@@ -1354,13 +1354,17 @@ body.swal2-no-backdrop .swal2-shown {
     draggable="false"
     oncontextmenu="return false;"
     style="
-      max-width: 100%; 
-      height: auto; 
-      -webkit-user-drag: none; 
-      user-drag: none; 
-      -webkit-user-select: none; 
-      user-select: none;
-    "
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  object-fit: contain;
+  -webkit-user-drag: none; 
+  user-drag: none; 
+  -webkit-user-select: none; 
+  user-select: none;
+"
   />
 </div>
 
